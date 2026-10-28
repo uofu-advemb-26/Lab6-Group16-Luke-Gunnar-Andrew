@@ -12,4 +12,4 @@
     ignore = dirty
 [submodule "lib/unity"]
 	path = lib/unity
-	url = https://github.com/throwtheswitch/unity
+	url = https://github.com/ThrowTheSwitch/Unity.git
