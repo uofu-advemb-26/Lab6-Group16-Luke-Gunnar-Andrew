@@ -25,28 +25,30 @@
 SemaphoreHandle_t Semaphore;
 
 
-void task_high(__unused void *params) {
+void task_high_func(__unused void *params) {
     vTaskDelay(100);
     xSemaphoreTake(Semaphore, portMAX_DELAY);
     printf("High priority task running\n");
     xSemaphoreGive(Semaphore);
 
 }
-void task_low(__unused void *params) {
+void task_low_func(__unused void *params) {
     xSemaphoreTake(Semaphore, portMAX_DELAY);
-    printf("Low priority task running\n");
-    xSemaphoreGive(Semaphore);
+    while(1) {
+        printf("Low priority task running\n");
+
+    }
 }
 
-void task_medium(__unused void *params) {
-    printf("Medium priority task running\n");
+void task_medium_func(__unused void *params) {
     while(1) {
+        printf("Medium priority task running\n");
 
     }
 
 }
 
-void task_supervisor(__unused void *params) {
+void task_supervisor_func(__unused void *params) {
     while(1) {
         printf("Supervisor task running\n");
         vTaskDelay(400);
@@ -64,14 +66,15 @@ int main( void )
     TaskHandle_t task_medium;
     TaskHandle_t task_supervisor;
 
-    Semaphore = xSemaphoreCreateCounting(1, 1);
-    xTaskCreate(task_high, "TaskHigh",
+    Semaphore = xSemaphoreCreateBinary();
+    xTaskCreate(task_high_func, "TaskHigh",
         HIGH_TASK_STACK_SIZE, NULL, HIGH_TASK_PRIORITY, &task_high);
-    xTaskCreate(task_low, "TaskLow",
+    xTaskCreate(task_low_func, "TaskLow",
         LOW_TASK_STACK_SIZE, NULL, LOW_TASK_PRIORITY, &task_low);
-    xTaskCreate(task_medium, "TaskMedium",
+    sleep_ms(100);
+    xTaskCreate(task_medium_func, "TaskMedium",
         MEDIUM_TASK_STACK_SIZE, NULL, MEDIUM_TASK_PRIORITY, &task_medium);
-    xTaskCreate(task_supervisor, "TaskSupervisor",
+    xTaskCreate(task_supervisor_func, "TaskSupervisor",
         HIGH_TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, &task_supervisor);
     vTaskStartScheduler();
     return 0;
