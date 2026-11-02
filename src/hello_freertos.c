@@ -49,9 +49,22 @@ void task_medium_func(__unused void *params) {
 }
 
 void task_supervisor_func(__unused void *params) {
+    TaskHandle_t task_high;
+    TaskHandle_t task_low;
+    TaskHandle_t task_medium;
+    xTaskCreate(task_low_func, "TaskLow",
+        LOW_TASK_STACK_SIZE, NULL, LOW_TASK_PRIORITY, &task_low);
+    
+    vTaskDelay(500);
+    
+    xTaskCreate(task_medium_func, "TaskMedium",
+        MEDIUM_TASK_STACK_SIZE, NULL, MEDIUM_TASK_PRIORITY, &task_medium);
+    xTaskCreate(task_high_func, "TaskHigh",
+        HIGH_TASK_STACK_SIZE, NULL, HIGH_TASK_PRIORITY, &task_high);
+
     while(1) {
         printf("Supervisor task running\n");
-        vTaskDelay(400);
+        taskYIELD();
     }
 
 }
@@ -61,19 +74,12 @@ int main( void )
     stdio_init_all();
     const char *rtos_name;
     rtos_name = "FreeRTOS";
-    TaskHandle_t task_high;
-    TaskHandle_t task_low;
-    TaskHandle_t task_medium;
-    TaskHandle_t task_supervisor;
+    sleep_ms(5000);
 
+    
     Semaphore = xSemaphoreCreateBinary();
-    xTaskCreate(task_high_func, "TaskHigh",
-        HIGH_TASK_STACK_SIZE, NULL, HIGH_TASK_PRIORITY, &task_high);
-    xTaskCreate(task_low_func, "TaskLow",
-        LOW_TASK_STACK_SIZE, NULL, LOW_TASK_PRIORITY, &task_low);
-    sleep_ms(100);
-    xTaskCreate(task_medium_func, "TaskMedium",
-        MEDIUM_TASK_STACK_SIZE, NULL, MEDIUM_TASK_PRIORITY, &task_medium);
+    
+    TaskHandle_t task_supervisor;
     xTaskCreate(task_supervisor_func, "TaskSupervisor",
         HIGH_TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, &task_supervisor);
     vTaskStartScheduler();
