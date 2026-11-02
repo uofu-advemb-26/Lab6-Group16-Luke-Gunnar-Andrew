@@ -15,9 +15,9 @@
 #include "semphr.h"
 
 
-#define HIGH_TASK_PRIORITY      ( tskIDLE_PRIORITY + 1UL )
-#define MEDIUM_TASK_PRIORITY     ( tskIDLE_PRIORITY + 2UL )
-#define LOW_TASK_PRIORITY       ( tskIDLE_PRIORITY + 3UL )
+#define HIGH_TASK_PRIORITY      ( tskIDLE_PRIORITY + 2UL )
+#define MEDIUM_TASK_PRIORITY     ( tskIDLE_PRIORITY + 1UL )
+#define LOW_TASK_PRIORITY       ( tskIDLE_PRIORITY )
 #define HIGH_TASK_STACK_SIZE configMINIMAL_STACK_SIZE
 #define MEDIUM_TASK_STACK_SIZE configMINIMAL_STACK_SIZE
 #define LOW_TASK_STACK_SIZE configMINIMAL_STACK_SIZE
@@ -27,23 +27,26 @@ SemaphoreHandle_t Semaphore;
 
 void task_high_func(__unused void *params) {
     vTaskDelay(100);
-    xSemaphoreTake(Semaphore, portMAX_DELAY);
-    printf("High priority task running\n");
-    xSemaphoreGive(Semaphore);
+    while(1) {
+        xSemaphoreTake(Semaphore, portMAX_DELAY);
+        printf("High priority task running\n");
+        xSemaphoreGive(Semaphore);
+    }
 
 }
-void task_low_func(__unused void *params) {
-    xSemaphoreTake(Semaphore, portMAX_DELAY);
-    while(1) {
-        printf("Low priority task running\n");
 
+void task_low_func(__unused void *params) {
+    while(1) {
+        xSemaphoreTake(Semaphore, portMAX_DELAY);
+        printf("Low priority task running\n");
+        xSemaphoreGive(Semaphore);
     }
+
 }
 
 void task_medium_func(__unused void *params) {
     while(1) {
         printf("Medium priority task running\n");
-
     }
 
 }
@@ -52,6 +55,7 @@ void task_supervisor_func(__unused void *params) {
     TaskHandle_t task_high;
     TaskHandle_t task_low;
     TaskHandle_t task_medium;
+
     xTaskCreate(task_low_func, "TaskLow",
         LOW_TASK_STACK_SIZE, NULL, LOW_TASK_PRIORITY, &task_low);
     
@@ -59,12 +63,13 @@ void task_supervisor_func(__unused void *params) {
     
     xTaskCreate(task_medium_func, "TaskMedium",
         MEDIUM_TASK_STACK_SIZE, NULL, MEDIUM_TASK_PRIORITY, &task_medium);
+    
     xTaskCreate(task_high_func, "TaskHigh",
         HIGH_TASK_STACK_SIZE, NULL, HIGH_TASK_PRIORITY, &task_high);
 
     while(1) {
         printf("Supervisor task running\n");
-        taskYIELD();
+        vTaskDelay(1000);
     }
 
 }
@@ -77,11 +82,11 @@ int main( void )
     sleep_ms(5000);
 
     
-    Semaphore = xSemaphoreCreateBinary();
+    Semaphore = xSemaphoreCreateMutex();
     
     TaskHandle_t task_supervisor;
     xTaskCreate(task_supervisor_func, "TaskSupervisor",
-        HIGH_TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, &task_supervisor);
+        HIGH_TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY + 3UL, &task_supervisor);
     vTaskStartScheduler();
     return 0;
 }

@@ -3,35 +3,50 @@
 #include <stdint.h>
 #include <unity.h>
 #include "unity_config.h"
+#include "busy.h"
+#include <FreeRTOS.h>
+
+configRUN_TIME_COUNTER_TYPE run_time_counter_1, run_time_counter_2;
+TickType_t tick_count;
+
+
 
 void setUp(void) {}
 
-void tearDown(void) {}
-
-void test_variable_assignment()
-{
-    int x = 1;
-    TEST_ASSERT_TRUE_MESSAGE(x == 1,"Variable assignment failed.");
+void tearDown(void) {
+    printf("primary %lld secondary %lld elapsed %lld (us) in %d ticks\n",
+        first_stats, second_stats, elapsed_stats, elapsed_ticks);
 }
 
-void test_multiplication(void)
+void test_samePriority_busy(void)
 {
-    int x = 30;
-    int y = 6;
-    int z = x / y;
-    TEST_ASSERT_TRUE_MESSAGE(z == 5, "Multiplication of two integers returned incorrect value.");
+    TaskHandle_t task_high;
+    TaskHandle_t task_high_2;
+
+    xTaskCreate(busy_busy, "busy_busy",
+        HIGH_TASK_STACK_SIZE, NULL, HIGH_TASK_PRIORITY, &task_high);
+    xTaskCreate(busy_busy, "busy_busy",
+        HIGH_TASK_STACK_SIZE, NULL, HIGH_TASK_PRIORITY, &task_high_2);
+
 }
+
+void main_thread (void *args)
+{
+    while (1) {
+        UNITY_BEGIN();
+        RUN_TEST(test_samePriority_busy);
+        UNITY_END();
+        vTaskDelay(1000);
+    }
+}
+
 
 int main (void)
 {
     stdio_init_all();
-    while (1) {
-        sleep_ms(5000); // Give time for TTY to attach.
-        printf("Start tests\n");
-        UNITY_BEGIN();
-        RUN_TEST(test_variable_assignment);
-        RUN_TEST(test_multiplication);
-        sleep_ms(5000);
-        UNITY_END();
-    }
+    TaskHandle_t main_handle;
+    xTaskCreate(main_thread, "MainThread",
+                configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY+10, &main_handle);
+    vTaskStartScheduler();
+    return 0;
 }
