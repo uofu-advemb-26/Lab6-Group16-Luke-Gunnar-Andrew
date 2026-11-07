@@ -3,5 +3,14 @@
 
 // This example uses a common include to avoid repetition
 #include "FreeRTOSConfig_examples_common.h"
+#define configGENERATE_RUN_TIME_STATS 1
 
+// If your template requires timer hooks for statistics, define them:
+#ifndef portCONFIGURE_TIMER_FOR_RUN_TIME_STATS
+#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS()
+#endif
+
+#ifndef portGET_RUN_TIME_COUNTER_VALUE
+#define portGET_RUN_TIME_COUNTER_VALUE() xTaskGetTickCount()
+#endif
 #endif
