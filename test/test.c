@@ -57,8 +57,8 @@
 #include <stdio.h>
 #include <pico/stdlib.h>
 #include <stdint.h>
-#include <unity.h>
 #include "unity_config.h"
+#include <unity.h>
 #include "busy.h"
 #include <FreeRTOS.h>
 #include "task.h"
